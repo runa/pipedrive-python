@@ -121,7 +121,34 @@ class Client:
             _headers.update(headers)
         if params:
             _params.update(params)
-        return self._parse(requests.request(method, url, headers=_headers, params=_params, **kwargs))
+
+        number_of_retries = kwargs.get('number_of_retries', 3)
+        intervaltime = kwargs.get('intervaltime', 500)
+
+        # remove number of retries and intervaltime from kwargs, otherwise the requests call will fail.
+        if 'number_of_retries' in kwargs:
+            del kwargs['number_of_retries']
+        if 'intervaltime' in kwargs:
+            del kwargs['intervaltime']
+
+        if number_of_retries:
+            while number_of_retries > 0:
+                try:
+                    response = self._parse(requests.request(method, url, headers=_headers, params=_params, **kwargs))
+                    # No except, response is ok, return it.
+                    return response
+                except (exceptions.BadRequestError, exceptions.UnauthorizedError, exceptions.NotFoundError,
+                        exceptions.UnsupportedMediaTypeError, exceptions.UnprocessableEntityError,
+                        exceptions.NotImplementedError, exceptions.TooManyRequestsError) as e:
+                    # Do not retry, just return the response.
+                    raise e
+                except (exceptions.ForbiddenError, exceptions.InternalServerError, exceptions.ServiceUnavailableError,
+                        exceptions.UnknownError):
+                    # Retry! There is hope.
+                    number_of_retries -= 1
+                    time.sleep(intervaltime / 1000.0)
+        else:
+            return self._parse(requests.request(method, url, headers=_headers, params=_params, **kwargs))            
 
     def _parse(self, response):
         status_code = response.status_code
