@@ -122,8 +122,8 @@ class Client:
         if params:
             _params.update(params)
 
-        number_of_retries = kwargs.get('number_of_retries', 3)
-        intervaltime = kwargs.get('intervaltime', 500)
+        number_of_retries = kwargs.get('number_of_retries', 5)
+        intervaltime = kwargs.get('intervaltime', 2500)
 
         # remove number of retries and intervaltime from kwargs, otherwise the requests call will fail.
         if 'number_of_retries' in kwargs:
