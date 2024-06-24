@@ -140,11 +140,11 @@ class Client:
                     return response
                 except (exceptions.BadRequestError, exceptions.UnauthorizedError, exceptions.NotFoundError,
                         exceptions.UnsupportedMediaTypeError, exceptions.UnprocessableEntityError,
-                        exceptions.NotImplementedError, exceptions.TooManyRequestsError) as e:
+                        exceptions.NotImplementedError) as e:
                     # Do not retry, just return the response.
                     raise e
                 except (exceptions.ForbiddenError, exceptions.InternalServerError, exceptions.ServiceUnavailableError,
-                        exceptions.UnknownError):
+                        exceptions.UnknownError, exceptions.TooManyRequestsError):
                     # Retry! There is hope.
                     number_of_retries -= 1
                     time.sleep(intervaltime / 1000.0)
