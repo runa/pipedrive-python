@@ -47,6 +47,7 @@ class Client:
         self.stages = Stages(self)
         self.users = Users(self)
         self.webhooks = Webhooks(self)
+        self.requests_session = requests.Session()
 
         if domain:
             if not domain.endswith("/"):
@@ -135,7 +136,7 @@ class Client:
         if number_of_retries:
             while number_of_retries > 0:
                 try:
-                    response = self._parse(requests.request(method, url, headers=_headers, params=_params, **kwargs))
+                    response = self._parse(self.requests_session.request(method, url, headers=_headers, params=_params, **kwargs))
                     # No except, response is ok, return it.
                     return response
                 except (exceptions.BadRequestError, exceptions.UnauthorizedError, exceptions.NotFoundError,
@@ -149,7 +150,7 @@ class Client:
                     number_of_retries -= 1
                     time.sleep(intervaltime / 1000.0)
         else:
-            return self._parse(requests.request(method, url, headers=_headers, params=_params, **kwargs))            
+            return self._parse(self.requests_session.request(method, url, headers=_headers, params=_params, **kwargs))            
 
     def _parse(self, response):
         status_code = response.status_code
